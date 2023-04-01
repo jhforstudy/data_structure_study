@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 #define MAX_QUEUE_SIZE 8
 
@@ -10,6 +11,8 @@ typedef struct queue {
 element queue[MAX_QUEUE_SIZE];
 int front = 0;
 int rear = 0;
+bool queue_empty = true;
+bool queue_full = false;
 
 void queueFull() {
     fprintf(stderr, "Stack is full\n");
@@ -25,18 +28,29 @@ element queueEmpty() {
 
 void addq(element item) {
     rear = (rear + 1) % MAX_QUEUE_SIZE;
-    if (front == rear) {
-        queueFull();
+    // queue가 비어있지 않은 상황에서 front = rear 가 되면
+    if (front == rear && !queue_empty) {
+        // queue_full 변수를 true로 만들기
+        queue_full = true;
     }
+    // queue가 비어있었다면, queue_empty를 false로
+    if (queue_empty)
+        queue_empty = false;
     queue[rear] = item;
 }
 
 element deleteq() {
-    if (front == rear)
+    // queue가 꽉 차지 않은 상태에서 front = rear 라면
+    if (front == rear && !queue_full) {
+        queue_empty = true;
         return queueEmpty();
+    }
+    // queue가 꽉차있었다면, queue_full을 false로
+    if (queue_full)
+        queue_full = false;
     front = (front + 1) % MAX_QUEUE_SIZE;
     return queue[front]; 
-}  
+}
 
 void printq() {
     int curr = front;
@@ -53,7 +67,7 @@ int main() {
     for (int i=0; i<MAX_QUEUE_SIZE; i++) {
         curr_e.key = -1;
         queue[i] = curr_e;
-    }        
+    }      
 
     // push 7 items
     for (int i=0; i<7; i++) {
@@ -63,8 +77,8 @@ int main() {
         printq();
     }
     
-    // pop 5 items
-    for (int i=0; i<5; i++) {
+    // pop 8 items
+    for (int i=0; i<8; i++) {
         curr_e = deleteq();
         printf("Pop %d from a queue.\n", curr_e.key);
         printq();
