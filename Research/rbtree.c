@@ -623,7 +623,7 @@ void createProcess(RBTree* tree) {
     int i, j, random_value;
     srand(time(NULL));
 
-    for (i = 0; i < 100; i++) {
+    for (i = 0; i < 700; i++) {
         // do {
         //     random_value = rand() % 40;
         // } while (checkDuplicate(random_values, random_value, i)); // 중복 확인 후 다시 난수 생성
@@ -643,10 +643,7 @@ void createProcess(RBTree* tree) {
 
         // Print random priority
         random_values[i] = random_value;
-        printf("%d ", random_value);
     }
-
-    printf("\n");
 }
 
 int main() {
@@ -657,9 +654,6 @@ int main() {
     RBTree *tree = createRBTree();
 
     createProcess(tree);
-
-
-
 
     clock_gettime(CLOCK_MONOTONIC, &start_time);
     for (int i=0; i<50000; i++) {
@@ -684,10 +678,8 @@ int main() {
     clock_gettime(CLOCK_MONOTONIC, &end_time);
     // 실행 시간 계산 (단위: 초)
     execution_time = (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_nsec - start_time.tv_nsec) / 1e9;
-    printf("RB Tree 실행 시간: %.6f ms\n", execution_time * 1000);
-
-
-
+    // printf("RB Tree 실행 시간: %.6f ms\n", execution_time * 1000);
+    printf("%.6f\t", execution_time * 1000);
 
     clock_gettime(CLOCK_MONOTONIC, &start_time);
     for (int i=0; i<50000; i++) {
@@ -709,12 +701,11 @@ int main() {
     clock_gettime(CLOCK_MONOTONIC, &end_time);
     // 실행 시간 계산 (단위: 초)
     execution_time = (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_nsec - start_time.tv_nsec) / 1e9;
-    printf("linked list 실행 시간: %.6f ms\n", execution_time * 1000);
+    // printf("linked list 실행 시간: %.6f ms\n", execution_time * 1000);
+    printf("%.6f\t", execution_time * 1000);
 
     // 메모리 해제
     deleteLinkedList();
-
-
 
     clock_gettime(CLOCK_MONOTONIC, &start_time);
     for (int i=0; i<50000; i++) {
@@ -730,12 +721,13 @@ int main() {
     clock_gettime(CLOCK_MONOTONIC, &end_time);
     // 실행 시간 계산 (단위: 초)
     execution_time = (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_nsec - start_time.tv_nsec) / 1e9;
-    printf("BST 실행 시간: %.6f ms\n", execution_time * 1000);
+    // printf("BST 실행 시간: %.6f ms\n", execution_time * 1000);
+    printf("%.6f\t", execution_time * 1000);
 
     // 메모리 해제
     b_deleteTree(b_root);
 
-
+    printf("\n");
 
     return 0;
 }
