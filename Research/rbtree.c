@@ -30,7 +30,11 @@ typedef struct LinkedNode {
     struct LinkedNode *next;
 } LinkedNode;
 
+LinkedNode* head = NULL;
+LinkedNode* tail = NULL;
+
 LinkedNode* l_createNode(int prio) {
+    // 새로운 노드 생성
     LinkedNode* newNode = (LinkedNode*)malloc(sizeof(LinkedNode));
     newNode->load = prio_to_weight[prio];
     newNode->priority = prio;
@@ -40,83 +44,205 @@ LinkedNode* l_createNode(int prio) {
     return newNode;
 }
 
-void l_insertNode(LinkedNode** head, LinkedNode* n) {
-    if (*head == NULL) {
-        *head = n;
+void l_insertNode(LinkedNode* newNode) {
+    if (head == NULL) {
+        // 연결 리스트가 비어있을 경우
+        head = newNode;
+        tail = newNode;
+    } 
+    else if (head->next == NULL) {
+        head->next = newNode;
+        tail = newNode;
     } else {
-        LinkedNode* current = *head;
-        while (current->next != NULL) {
+        // 연결 리스트에 이미 노드가 존재하는 경우, 정렬
+        LinkedNode *current = head;
+        LinkedNode *previous = NULL;
+
+        while (current != NULL) {
+            if (current->vruntime > newNode->vruntime)
+                break;
+            previous = current;
             current = current->next;
         }
-        current->next = n;
+        previous->next = newNode;
+        newNode->next = current;
+        if (newNode->next == NULL)
+            tail = newNode;
     }
-    printf("노드 %d이(가) 연결 리스트에 삽입되었습니다.\n", n->priority);
 }
 
-void l_deleteNode(LinkedNode** head, LinkedNode* n) {
-    if (*head == NULL) {
-        printf("연결 리스트가 비어있습니다.\n");
-        return;
-    }
-    LinkedNode* current = *head;
-    LinkedNode* prev = NULL;
-    while (current != NULL && current != n) {
-        prev = current;
-        current = current->next;
-    }
-    if (current == NULL) {
-        printf("노드를 찾을 수 없습니다.\n");
-        return;
-    }
-    if (prev == NULL) {
-        *head = current->next;
-    } else {
-        prev->next = current->next;
-    }
-    free(current);
-}
-
-LinkedNode* l_findMinNode(LinkedNode* head) {
-    if (head == NULL) {
-        printf("연결 리스트가 비어있습니다.\n");
-        return 0;
-    }
-    LinkedNode* minNode = head;
-    LinkedNode* current = head->next;
-    while (current != NULL) {
-        if (current->vruntime < minNode->vruntime) {
-            minNode = current;
-        }
-        current = current->next;
-    }
-    printf("최솟값: %f\n", minNode->vruntime);
-    return minNode;
-}
-
-void l_printLinkedList(LinkedNode* head) {
-    if (head == NULL) {
-        printf("연결 리스트가 비어있습니다.\n");
-        return;
-    }
+void l_deleteNode(LinkedNode* del_n) {
     LinkedNode* current = head;
-    printf("연결 리스트: ");
+    LinkedNode* previous = NULL;
+
+    // 삭제할 노드 탐색
     while (current != NULL) {
-        printf("%d ", current->priority);
+        if (current == del_n) {
+            if (previous == NULL) {
+                // 삭제할 노드가 첫 번째 노드인 경우
+                head = current->next;
+            } else {
+                previous->next = current->next;
+            }
+
+            if (current == tail) {
+                // 삭제할 노드가 마지막 노드인 경우
+                tail = previous;
+            }
+
+            free(current);
+            return;
+        }
+
+        previous = current;
         current = current->next;
     }
+}
+
+LinkedNode* l_findMinimumNode() {
+    if (head == NULL) {
+        // 연결 리스트가 비어있는 경우
+        return NULL;
+    }
+
+    LinkedNode* current = head;
+    LinkedNode* minimumNode = head;
+
+    // 최솟값을 가진 노드 탐색
+    while (current != NULL) {
+        if (current->vruntime < minimumNode->vruntime) {
+            minimumNode = current;
+        }
+
+        current = current->next;
+    }
+
+    return minimumNode;
+}
+
+void l_printLinkedList() {
+    LinkedNode* current = head;
+
+    while (current != NULL) {
+        printf("%.1f ", current->vruntime);
+        current = current->next;
+    }
+
     printf("\n");
 }
 
-void deleteLinkedList(LinkedNode** head) {
-    LinkedNode* current = *head;
-    LinkedNode* next = NULL;
+void deleteLinkedList() {
+    LinkedNode* current = head;
+    LinkedNode* nextNode = NULL;
+
     while (current != NULL) {
-        next = current->next;
+        nextNode = current->next;
         free(current);
-        current = next;
+        current = nextNode;
     }
-    *head = NULL;
-    printf("연결 리스트의 모든 노드가 삭제되었습니다.\n");
+
+    head = NULL;
+    tail = NULL;
+}
+
+// Binary Search Tree
+// ===========================================================================
+
+typedef struct BSTNode {
+    int load;       // Load weight
+    int priority;   // priority
+    float vruntime;   // virtual runtime  (ns)
+    int runtime;    // real runtime (ns)
+    struct BSTNode* left;
+    struct BSTNode* right;
+} BSTNode;
+
+BSTNode *b_root = NULL;
+
+BSTNode* b_createNode(int prio) {
+    BSTNode* newNode = (BSTNode*)malloc(sizeof(BSTNode));
+    newNode->load = prio_to_weight[prio];
+    newNode->priority = prio;
+    newNode->vruntime = 0;
+    newNode->runtime = 0;
+    newNode->left = NULL;
+    newNode->right = NULL;
+    return newNode;
+}
+
+void b_insertNode(BSTNode* new_n) {
+    if (b_root == NULL) {
+        b_root = new_n;
+        return;
+    }
+    BSTNode* current = b_root;
+    BSTNode* parent = NULL;
+    while (current != NULL) {
+        parent = current;
+        if (new_n->vruntime < current->vruntime) {
+            current = current->left;
+        }
+        else {
+            current = current->right;
+        }
+    }
+    current = new_n;
+    if (new_n->vruntime < parent->vruntime)
+        parent->left = current;
+    else
+        parent->right = current;
+}
+
+// 최소 노드를 찾고, 업데이트하고, 반환하는 함수
+BSTNode* b_deleteMinNode() {
+    BSTNode *current = b_root;
+    BSTNode *parent = NULL;
+
+    while (current->left != NULL) {
+        parent = current;
+        current = current->left;
+    }
+
+    // Duplicate
+    BSTNode* new_n = b_createNode(current->priority);
+    new_n->runtime = current->runtime + 100;
+    new_n->vruntime = new_n->runtime * 1024 / new_n->load;
+
+    // 최소 노드가 루트인 경우
+    if (parent == NULL) {
+        BSTNode *temp = b_root;
+        b_root = current->right;   
+        free(temp);
+    }
+    // 자식 노드가 없는 경우
+    else if (current->right == NULL) {
+        parent->left = NULL;
+        free(current);
+    }
+    // 자식 노드가 하나 있는 경우, 당겨오기
+    else {
+        parent->left = current->right;
+        free(current);
+    }
+    return new_n;
+}
+
+void b_deleteTree(BSTNode* root) {
+    if (root == NULL) {
+        return;
+    }
+    b_deleteTree(root->left);
+    b_deleteTree(root->right);
+    free(root);
+}
+
+void b_inorderTraversal(BSTNode* root) {
+    if (root == NULL) {
+        return;
+    }
+    b_inorderTraversal(root->left);
+    printf("%.1f ", root->vruntime);
+    b_inorderTraversal(root->right);
 }
 
 // RBTree
@@ -493,25 +619,33 @@ int checkDuplicate(int arr[], int num, int size) {
     return 0; // 중복이 발생하지 않으면 0을 반환
 }
 
-void createProcess(RBTree* tree, LinkedNode* head) {
+void createProcess(RBTree* tree) {
     int i, j, random_value;
     srand(time(NULL));
 
-    for (i = 0; i < 40; i++) {
-        do {
-            random_value = rand() % 40;
-        } while (checkDuplicate(random_values, random_value, i)); // 중복 확인 후 다시 난수 생성
+    for (i = 0; i < 100; i++) {
+        // do {
+        //     random_value = rand() % 40;
+        // } while (checkDuplicate(random_values, random_value, i)); // 중복 확인 후 다시 난수 생성
+
+        random_value = rand() % 40;
 
         // Add new node to tree
         insert(tree, random_value);
         // Add new node to linked list
         LinkedNode* new_lnode = l_createNode(random_value);
-        l_insertNode(&head, new_lnode);
+        l_insertNode(new_lnode);
+        // l_printLinkedList();
+        // Add new node to BST
+        BSTNode* new_bnode = b_createNode(random_value);
+        b_insertNode(new_bnode);
+        // b_inorderTraversal(b_root);
+
+        // Print random priority
         random_values[i] = random_value;
         printf("%d ", random_value);
     }
 
-    l_printLinkedList(head);
     printf("\n");
 }
 
@@ -521,12 +655,11 @@ int main() {
 
     // RB Tree
     RBTree *tree = createRBTree();
-    // Linked list
-    LinkedNode *head = NULL;
 
-    createProcess(tree, head);
+    createProcess(tree);
 
-    l_printLinkedList(head);
+
+
 
     clock_gettime(CLOCK_MONOTONIC, &start_time);
     for (int i=0; i<50000; i++) {
@@ -551,24 +684,58 @@ int main() {
     clock_gettime(CLOCK_MONOTONIC, &end_time);
     // 실행 시간 계산 (단위: 초)
     execution_time = (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_nsec - start_time.tv_nsec) / 1e9;
-    printf("실행 시간: %.9f초\n", execution_time);
+    printf("RB Tree 실행 시간: %.6f ms\n", execution_time * 1000);
 
-    for (int i=0; i<1; i++) {
-        // // Find min vruntime node 
-        // LinkedNode* l_min = l_findMinNode(head);
-        // // Update runtime & vruntime
-        // l_min->runtime += 100;
-        // l_min->vruntime += 100 * prio_to_weight[20] / l_min->load;
-        // // Duplicate new Node
-        // LinkedNode* new_l_min = l_createNode(l_min->priority);
-        // new_l_min->vruntime = l_min->vruntime;
-        // new_l_min->runtime = l_min->runtime;
-        // // Delete & re-locate the Node
-        // l_deleteNode(&head, l_min);
-        // l_insertNode(&head, new_l_min);
+
+
+
+    clock_gettime(CLOCK_MONOTONIC, &start_time);
+    for (int i=0; i<50000; i++) {
+        // Find min vruntime node
+        LinkedNode *l_min = l_findMinimumNode();
+        // Update runtime & vruntime
+        l_min->runtime += 100;    // 100 ns
+        l_min->vruntime += 100 * prio_to_weight[20] / l_min->load;
+        // Duplicate new Node
+        LinkedNode* l_new_min = l_createNode(l_min->priority);
+        l_new_min->vruntime = l_min->vruntime;
+        l_new_min->runtime = l_min->runtime;
+        // Delete & re-locate the Node
+        l_deleteNode(l_min);
+        l_insertNode(l_new_min);
+        // l_printLinkedList();
     }
+
+    clock_gettime(CLOCK_MONOTONIC, &end_time);
+    // 실행 시간 계산 (단위: 초)
+    execution_time = (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_nsec - start_time.tv_nsec) / 1e9;
+    printf("linked list 실행 시간: %.6f ms\n", execution_time * 1000);
+
     // 메모리 해제
-    deleteLinkedList(&head);
+    deleteLinkedList();
+
+
+
+    clock_gettime(CLOCK_MONOTONIC, &start_time);
+    for (int i=0; i<50000; i++) {
+        // Find min vruntime node
+        // Update runtime & vruntime
+        // Duplicate new Node
+        BSTNode* l_new_min = b_deleteMinNode();
+        // Delete & re-locate the Node
+        b_insertNode(l_new_min);
+        // b_inorderTraversal(b_root);
+    }
+
+    clock_gettime(CLOCK_MONOTONIC, &end_time);
+    // 실행 시간 계산 (단위: 초)
+    execution_time = (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_nsec - start_time.tv_nsec) / 1e9;
+    printf("BST 실행 시간: %.6f ms\n", execution_time * 1000);
+
+    // 메모리 해제
+    b_deleteTree(b_root);
+
+
 
     return 0;
 }
