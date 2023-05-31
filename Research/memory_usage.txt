@@ -1,0 +1,7 @@
+linked list : 1216800
+BST : 1622400
+RBTree : 2433648
+
+linked list : 24
+BST : 32
+RBTree : 48
